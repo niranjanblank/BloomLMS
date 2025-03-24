@@ -7,7 +7,7 @@ export async function PATCH(req: Request,
 ){
     try{
         const {userId} = await auth()
-        const {courseId} = params
+        const {courseId} = await params
 
         const values = await req.json()
 

@@ -4,17 +4,18 @@ import { auth } from "@clerk/nextjs/server";
 import { LayoutDashboard } from "lucide-react";
 import { redirect } from "next/navigation";
 import TitleForm from "./_components/TitleForm";
+import DescriptionForm from "./_components/DescriptionForm";
 const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
     
     const {userId} = await auth()
-
+    const {courseId} = await params
     if(!userId){
         return redirect("/")
     }
 
     const course = await db.course.findUnique({
         where: {
-            id: params.courseId
+            id: courseId
         }
     })
 
@@ -60,7 +61,11 @@ const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
                     <TitleForm
                         initialData = {course}
                         courseId={course.id}
-                        />
+                    />
+                    <DescriptionForm
+                        initialData = {course}
+                        courseId={course.id}
+                    />
                 </div>
 
             </div>
