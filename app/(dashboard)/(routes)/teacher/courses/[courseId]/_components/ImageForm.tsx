@@ -44,14 +44,9 @@ const ImageForm = ({initialData, courseId}:ImageFormProps) => {
     const toggleEdit = () => {
         setIsEditing(!isEditing)
     }
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            imageUrl: initialData?.imageUrl || "",
-          },
-    })
 
-    const {isSubmitting, isValid} = form.formState
+
+   
 
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -100,7 +95,7 @@ const ImageForm = ({initialData, courseId}:ImageFormProps) => {
         </div>
             ):(
             <>{
-                initialData.imageUrl && <div className="relative aspect-video mt-2">
+                !isEditing && initialData.imageUrl && <div className="relative aspect-video mt-2">
                 <Image
                     alt="Upload"
                     fill
