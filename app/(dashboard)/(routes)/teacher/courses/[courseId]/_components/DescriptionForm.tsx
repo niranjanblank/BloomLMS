@@ -28,12 +28,10 @@ interface DescriptionFormProps {
 
 
 const formSchema = z.object({
-    description: z.preprocess(
-        (val) => (val === null ? "" : val),
+    description: 
         z.string().min(1, {
           message: "Description is required",
         })
-    ),
 })
 
 const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
