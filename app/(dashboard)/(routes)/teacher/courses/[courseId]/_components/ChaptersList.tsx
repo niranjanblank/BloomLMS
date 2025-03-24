@@ -30,15 +30,40 @@ const ChaptersList = ({ items, onReorder, onEdit }: ChaptersListProps) => {
     setChapters(items);
   }, [items]);
 
+  const onDragEnd = (result: DropResult) => {
+    if(!result.destination) return
+
+    const items = Array.from(chapters)
+    const [reorderedItem] = items.splice(result.source.index,1)
+    items.splice(result.destination.index,0,reorderedItem)
+
+    const startIndex = Math.min(result.source.index, result.destination.index)
+    const endIndex = Math.max(result.source.index, result.destination.index)
+
+    const updatedChapters = items.slice(startIndex, endIndex+1)
+
+    setChapters(items)
+
+    const bulkUpdateData = updatedChapters.map((chapter)=> ({
+      id: chapter.id,
+      position: items.findIndex((item)=>item.id === chapter.id)
+    }))
+
+    onReorder(bulkUpdateData)
+
+  }
+
   // only runs on the client, need to do this to avoid hydration error
   if (!isMounted) {
     return null;
   }
   return (
-    <DragDropContext onDragEnd={() => {}}>
+    <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="chapters">
         {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
+          <div 
+          className="flex flex-col gap-y-2"
+          {...provided.droppableProps} ref={provided.innerRef}>
             {chapters.map((chapter, index) => (
               <Draggable
                 key={chapter.id}
