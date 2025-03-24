@@ -9,6 +9,7 @@ import ImageForm from "./_components/ImageForm";
 import CategoryForm from "./_components/CategoryForm";
 import PriceForm from "./_components/PriceForm";
 import AttachmentForm from "./_components/AttachmentForm";
+import ChaptersForm from "./_components/ChaptersForm";
 const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
     
     const {userId} = await auth()
@@ -17,11 +18,18 @@ const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
         return redirect("/")
     }
 
+    // course
     const course = await db.course.findUnique({
         where: {
-            id: courseId
+            id: courseId,
+            userId
         },
         include: {
+            chapters: {
+                orderBy: {
+                    position: "asc"
+                }
+            },
             attachments: {
                 orderBy: {
                     createdAt: "desc"
@@ -30,6 +38,7 @@ const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
         }
     })
 
+    // categories
     const categories =  await db.category.findMany({
         orderBy: {
             name: "asc",
@@ -41,12 +50,15 @@ const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
         return redirect("/")
     }
 
+    // course can only be publised once it has infomation relating to the following fields
     const requiredFields = [
         course.title,
         course.description,
         course.categoryId,
         course.imageUrl,
-        course.price
+        course.price,
+        // at least one chapter needs to be published
+        course.chapters.some(chapter => chapter.isPublished)
     ]
 
     const totalFields = requiredFields.length;
@@ -104,7 +116,10 @@ const CourseIdPage = async ({params}:{params: {courseId: string}}) => {
                                 <h2 className="text-xl"> Course Chapters</h2>
                             </div>
                             <div>
-                                TODO: Chapters
+                            <ChaptersForm
+                                initialData = {course}
+                                courseId={course.id}
+                            />
                             </div>
                         </div>
                         <div>
