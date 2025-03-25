@@ -19,21 +19,24 @@ import { Input } from "@/components/ui/input"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
-import { Course } from "@prisma/client"
-interface DescriptionFormProps {
-    initialData: Course
+import { Chapter, Course } from "@prisma/client"
+import { Editor } from "@/components/editor"
+import { Preview } from "@/components/preview"
+interface ChapterDescriptionFormProps {
+    initialData: Chapter
     courseId: string
+    chapterId: string
 }
 
 
 const formSchema = z.object({
     description: 
         z.string().min(1, {
-          message: "Description is required",
+          message: "ChapterDescription is required",
         })
 })
 
-const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
+const ChapterDescriptionForm = ({initialData, courseId, chapterId}:ChapterDescriptionFormProps) => {
     const router = useRouter()
 
     const [isEditing, setIsEditing] = useState(false)
@@ -53,8 +56,8 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try{
-            await axios.patch(`/api/courses/${courseId}`, values)
-            toast.success("Course updated")
+            await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values)
+            toast.success("Chapter updated")
             toggleEdit()
             router.refresh()
         }
@@ -65,7 +68,7 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
     return ( 
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
     <div className="font-medium flex items-center justify-between">
-        Course Description
+        Chapter Description
         <Button variant="ghost" onClick={toggleEdit}>
             {isEditing? (
                 <>Cancel</>
@@ -77,9 +80,14 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
         </Button>
     </div>
     {!isEditing && (
-        <p className="text-sm mt-2">
-            {initialData.description || "No description"}
-        </p>
+        <div className="text-sm mt-2">
+            {!initialData.description &&  "No description"}
+            {initialData.description &&  (
+                <Preview
+                value={initialData.description}
+                />
+            )}
+        </div>
     )}
 
     {isEditing && (
@@ -94,10 +102,7 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
                 render = {({field})=>(
                     <FormItem>
                         <FormControl>
-                            <Textarea
-                            className="bg-white"
-                            disabled = {isSubmitting}
-                            placeholder="e.g. 'This course is about' "
+                            <Editor
                             {...field}
                             />
                         </FormControl>
@@ -120,4 +125,4 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
     </div> );
 }
  
-export default DescriptionForm;
+export default ChapterDescriptionForm;

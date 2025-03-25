@@ -8,6 +8,7 @@ import {useForm} from "react-hook-form"
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormMessage
@@ -15,25 +16,25 @@ import {
 import { Button } from "@/components/ui/button"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
+import {  Switch } from "@/components/ui/switch"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
-import { Course } from "@prisma/client"
-interface DescriptionFormProps {
-    initialData: Course
+import { Chapter, Course } from "@prisma/client"
+import { Editor } from "@/components/editor"
+import { Preview } from "@/components/preview"
+interface ChapterAccessFormProps {
+    initialData: Chapter
     courseId: string
+    chapterId: string
 }
 
 
 const formSchema = z.object({
-    description: 
-        z.string().min(1, {
-          message: "Description is required",
-        })
+    isFree: z.boolean().default(false)
 })
 
-const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
+const ChapterAccessForm = ({initialData, courseId, chapterId}:ChapterAccessFormProps) => {
     const router = useRouter()
 
     const [isEditing, setIsEditing] = useState(false)
@@ -44,7 +45,7 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            description: initialData.description ?? "",
+            isFree: Boolean(initialData.isFree),
           },
     })
 
@@ -53,8 +54,8 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try{
-            await axios.patch(`/api/courses/${courseId}`, values)
-            toast.success("Course updated")
+            await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values)
+            toast.success("Chapter updated")
             toggleEdit()
             router.refresh()
         }
@@ -65,21 +66,21 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
     return ( 
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
     <div className="font-medium flex items-center justify-between">
-        Course Description
+        Chapter Access
         <Button variant="ghost" onClick={toggleEdit}>
             {isEditing? (
                 <>Cancel</>
             ):(
                 <>
                   <Pencil className="h-4 w-4 mr-2"/>
-                  Edit Description
+                  Edit Access
                 </>)}
         </Button>
     </div>
     {!isEditing && (
-        <p className="text-sm mt-2">
-            {initialData.description || "No description"}
-        </p>
+        <div className="text-sm mt-2 text-slate-700 italic">
+            {initialData.isFree?"This chapter is free for preview": "This chapter is locked"}
+        </div>
     )}
 
     {isEditing && (
@@ -90,17 +91,20 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
             >
                 <FormField
                 control={form.control}
-                name="description"
+                name="isFree"
                 render = {({field})=>(
                     <FormItem>
                         <FormControl>
-                            <Textarea
-                            className="bg-white"
-                            disabled = {isSubmitting}
-                            placeholder="e.g. 'This course is about' "
-                            {...field}
-                            />
+                           <Switch
+                           checked={field.value}
+                           onCheckedChange={field.onChange}
+                           />
                         </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormDescription>
+                                Switch this if you want to make this chapter free for preview
+                            </FormDescription>
+                        </div>
                         <FormMessage/>
                     </FormItem>
                 )}
@@ -120,4 +124,4 @@ const DescriptionForm = ({initialData, courseId}:DescriptionFormProps) => {
     </div> );
 }
  
-export default DescriptionForm;
+export default ChapterAccessForm;
