@@ -1,12 +1,13 @@
 import { IconBadge } from "@/components/icon-badge";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
-import { ArrowLeft, ArrowRight, Eye, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, LayoutDashboard, Video } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ChapterTitleForm from "./_components/ChapterTitleForm";
 import ChapterDescriptionForm from "./_components/ChapterDescriptionForm";
 import ChapterAccessForm from "./_components/ChapterAccessForm";
+import ChapterVideoForm from "./_components/ChapterVideoForm";
 
 const ChapterIdPage = async ({params}:{params: {courseId: string, chapterId: string}}) => {
     const {userId} = await auth()
@@ -81,17 +82,28 @@ const ChapterIdPage = async ({params}:{params: {courseId: string, chapterId: str
                         initialData={chapter} chapterId={chapter.id} courseId={courseId}
                         />
                     </div>
+                    {/* for access control */}
                     <div>
                         <div className="flex items-center gap-x-2">
                             <IconBadge icon={Eye}/>
                             <h2 className="text-xl">Access Setting</h2>
                         </div>
-                     
                         <ChapterAccessForm
                         initialData={chapter} chapterId={chapter.id} courseId={courseId}
                         />
                     </div>
-
+                </div>
+                <div className="space-y-4">
+                    {/* for video */}
+                    <div>
+                        <div className="flex items-center gap-x-2">
+                            <IconBadge icon={Video}/>
+                            <h2 className="text-xl">Add a video</h2>
+                        </div>
+                        <ChapterVideoForm
+                        initialData={chapter} chapterId={chapter.id} courseId={courseId}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
