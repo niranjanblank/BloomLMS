@@ -12,9 +12,10 @@ import {
     FormItem,
     FormMessage
 } from "@/components/ui/form"
+import MuxPlayer from "@mux/mux-player-react"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, Pencil, PlusCircle, VideoIcon } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
@@ -37,6 +38,7 @@ const formSchema = z.object({
 
 const ChapterVideoForm = ({initialData, courseId, chapterId}:ChapterVideoFormProps) => {
     const router = useRouter()
+    const [isMounted, setIsMounted]= useState(false)
 
     const [isEditing, setIsEditing] = useState(false)
 
@@ -45,8 +47,13 @@ const ChapterVideoForm = ({initialData, courseId, chapterId}:ChapterVideoFormPro
     }
 
 
-   
+   useEffect(()=>{
+    setIsMounted(true)
+   },[])
 
+   if(!isMounted){
+    return
+   }
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try{
@@ -102,7 +109,9 @@ const ChapterVideoForm = ({initialData, courseId, chapterId}:ChapterVideoFormPro
                     src={initialData.videoUrl}
                 />
          */}
-                Video Uploadeded!
+                <MuxPlayer
+                playbackId={initialData?.muxData?.playbackId || ""}
+                />
             </div>
         }
     </>
