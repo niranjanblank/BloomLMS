@@ -12,6 +12,81 @@ const mux = new Mux({
 
   const video = mux.video; 
 
+  export async function DELETE(
+    req: Request,
+    { params }: { params: { courseId: string; chapterId: string } }
+  ) {
+    try {
+      const { userId } = await auth()
+  
+      if (!userId) {
+        return new NextResponse("Unauthorized", { status: 401 })
+      }
+  
+      const { courseId, chapterId } = await params
+  
+      // Ensure the chapter exists and belongs to the current user's course
+      const chapter = await db.chapter.findFirst({
+        where: {
+          id: chapterId,
+          courseId: courseId,
+          course: {
+            userId: userId,
+          },
+        },
+      })
+  
+      if (!chapter) {
+        return new NextResponse("Chapter not found", { status: 404 })
+      }
+  
+      // Delete related Mux data if exists
+      const muxData = await db.muxData.findFirst({
+        where: {
+          chapterId: chapterId,
+        },
+      })
+  
+      if (muxData) {
+        await video.assets.delete(muxData.assetId)
+        await db.muxData.delete({
+          where: {
+            id: muxData.id,
+          },
+        })
+      }
+  
+      // Finally, delete the chapter
+      const deletedChapter = await db.chapter.delete({
+        where: {
+          id: chapterId,
+        },
+      })
+
+      // Check if there are any chapters left in the course
+    const remainingChapters = await db.chapter.findMany({
+        where: {
+          courseId: courseId,
+        },
+      })
+
+       // If no chapters remain, unpublish the course
+    if (remainingChapters.length === 0) {
+        await db.course.update({
+          where: { id: courseId },
+          data: { isPublished: false },
+        })
+      }
+  
+      return NextResponse.json(deletedChapter)
+    } catch (error) {
+      console.error("[CHAPTER_DELETE_ERROR]", error)
+      return new NextResponse("Internal Error", { status: 500 })
+    }
+  }
+
+
+
 export async function PATCH(req: Request,
     {params} : {params: {courseId:string, chapterId: string}}
 ){
